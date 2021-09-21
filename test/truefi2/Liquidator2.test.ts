@@ -11,6 +11,7 @@ import {
   StkTruToken,
   TrueFiPool2,
   TrueLender2,
+  FixedTermLoanAgency,
   TrueFiCreditOracle,
   PoolFactory__factory,
   DebtToken,
@@ -21,7 +22,7 @@ import {
 import { solidity } from 'ethereum-waffle'
 import { BigNumberish, Wallet } from 'ethers'
 import { setupDeploy } from 'scripts/utils'
-import { DAY } from 'utils/constants'
+import { DAY, extractLoanTokenAddress } from 'utils'
 import {
   beforeEachWithFixture,
   createLoan,
@@ -53,6 +54,7 @@ describe('Liquidator2', () => {
   let tru: MockTrueCurrency
   let stkTru: StkTruToken
   let lender: TrueLender2
+  let ftlAgency: FixedTermLoanAgency
   let usdcPool: TrueFiPool2
   let tusdPool: TrueFiPool2
   let loan1: LoanToken2
@@ -87,6 +89,7 @@ describe('Liquidator2', () => {
       tru,
       stkTru,
       lender,
+      ftlAgency,
       feePool: usdcPool,
       standardPool: tusdPool,
       creditOracle,
@@ -115,6 +118,8 @@ describe('Liquidator2', () => {
     await creditOracle.setScore(borrower2.address, 255)
     await creditOracle.setMaxBorrowerLimit(borrower.address, parseEth(100_000_000))
     await creditOracle.setMaxBorrowerLimit(borrower2.address, parseEth(100_000_000))
+    await ftlAgency.allowBorrower(borrower.address)
+    await ftlAgency.allowBorrower(borrower2.address)
   })
 
   describe('Initializer', () => {
@@ -253,10 +258,12 @@ describe('Liquidator2', () => {
     beforeEach(async () => {
       await usdcPool.connect(owner).join(parseUSDC(1e7))
       await tusdPool.connect(owner).join(parseEth(1e7))
-      await lender.connect(borrower).fund(loan1.address)
-      await lender.connect(borrower2).fund(loan2.address)
-      await withdraw(loan1, borrower)
-      await withdraw(loan2, borrower2)
+      const tx = ftlAgency.connect(borrower).fund(usdcPool.address, parseUSDC(1000), YEAR, 1000)
+      loan1 = await extractLoanTokenAddress(tx, owner, loanFactory)
+      // const tx2 = ftlAgency.connect(borrower2).fund(tusdPool.address, parseEth(1000), YEAR, 1000)
+      // loan2 = await extractLoanTokenAddress(tx2, owner, loanFactory)
+      // await withdraw(loan1, borrower)
+      // await withdraw(loan2, borrower2)
     })
 
     describe('reverts if', () => {
