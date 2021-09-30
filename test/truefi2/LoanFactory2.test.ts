@@ -175,8 +175,7 @@ describe('LoanFactory2', () => {
       const mockCreditOracle = await deployMockContract(owner, TrueFiCreditOracleJson.abi)
       const mockCreditModel = await deployMockContract(owner, CreditModelJson.abi)
       await factory.initialize(
-        mockPoolFactory.address,
-        AddressZero, AddressZero, AddressZero, mockCreditModel.address, mockCreditOracle.address, AddressZero, AddressZero,
+        mockPoolFactory.address, AddressZero, AddressZero, mockCreditModel.address, mockCreditOracle.address, AddressZero, AddressZero,
       )
       await mockPoolFactory.mock.isSupportedPool.withArgs(AddressZero).returns(true)
       await mockCreditOracle.mock.score.withArgs(borrower.address).returns(0)
@@ -262,9 +261,7 @@ describe('LoanFactory2', () => {
       it('there is no token implementation', async () => {
         const factory = await new LoanFactory2__factory(owner).deploy()
         await factory.initialize(
-          AddressZero, AddressZero,
-          ftla.address,
-          AddressZero, AddressZero, AddressZero, AddressZero, AddressZero,
+          AddressZero, ftla.address, AddressZero, AddressZero, AddressZero, AddressZero, AddressZero,
         )
         await expect(factory.connect(ftla).createFTLALoanToken(pool.address, borrower.address, parseEth(1), 15 * DAY, 1000))
           .to.be.revertedWith('LoanFactory: Loan token implementation should be set')
@@ -317,8 +314,7 @@ describe('LoanFactory2', () => {
       it('there is no token implementation', async () => {
         const factory = await new LoanFactory2__factory(owner).deploy()
         await factory.initialize(
-          AddressZero, AddressZero, AddressZero, AddressZero, AddressZero, AddressZero, AddressZero,
-          fakeCreditAgency.address,
+          AddressZero, AddressZero, AddressZero, AddressZero, AddressZero, AddressZero, fakeCreditAgency.address,
         )
         await expect(factory.connect(fakeCreditAgency).createDebtToken(pool.address, borrower.address, parseEth(1)))
           .to.be.revertedWith('LoanFactory: Debt token implementation should be set')
