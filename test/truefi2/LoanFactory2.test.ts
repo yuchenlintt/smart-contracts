@@ -102,10 +102,6 @@ describe('LoanFactory2', () => {
       expect(await loanFactory.poolFactory()).to.eq(poolFactory.address)
     })
 
-    it('sets lender', async () => {
-      expect(await loanFactory.lender()).to.eq(lender.address)
-    })
-
     it('sets liquidator', async () => {
       expect(await loanFactory.liquidator()).to.eq(liquidator.address)
     })
@@ -131,7 +127,6 @@ describe('LoanFactory2', () => {
     it('deploys loan token contract', async () => {
       expect(await loanToken.amount()).to.equal(parseEth(1_000))
       expect(await loanToken.term()).to.equal(100)
-      expect(await loanToken.lender()).to.equal(lender.address)
       expect(await loanToken.loanFactory()).to.equal(loanFactory.address)
     })
 
@@ -282,7 +277,6 @@ describe('LoanFactory2', () => {
         expect(await loanToken.pool()).to.eq(pool.address)
         expect(await loanToken.borrowingMutex()).to.eq(borrowingMutex.address)
         expect(await loanToken.borrower()).to.eq(borrower.address)
-        expect(await loanToken.lender()).to.eq(lender.address)
         expect(await loanToken.ftlAgency()).to.eq(ftla.address)
         expect(await loanToken.admin()).to.eq(owner.address)
         expect(await loanToken.loanFactory()).to.eq(loanFactory.address)
@@ -520,31 +514,6 @@ describe('LoanFactory2', () => {
       await expect(loanFactory.setCreditAgency(creditAgency.address))
         .to.emit(loanFactory, 'CreditAgencyChanged')
         .withArgs(creditAgency.address)
-    })
-  })
-
-  describe('setLender', () => {
-    it('only admin can call', async () => {
-      await expect(loanFactory.connect(owner).setLender(lender.address))
-        .not.to.be.reverted
-      await expect(loanFactory.connect(borrower).setLender(lender.address))
-        .to.be.revertedWith('LoanFactory: Caller is not the admin')
-    })
-
-    it('cannot be set to zero address', async () => {
-      await expect(loanFactory.setLender(AddressZero))
-        .to.be.revertedWith('LoanFactory: Cannot set lender to zero address')
-    })
-
-    it('changes lender', async () => {
-      await loanFactory.setLender(owner.address)
-      expect(await loanFactory.lender()).to.eq(owner.address)
-    })
-
-    it('emits event', async () => {
-      await expect(loanFactory.setLender(owner.address))
-        .to.emit(loanFactory, 'LenderChanged')
-        .withArgs(owner.address)
     })
   })
 
